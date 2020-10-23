@@ -74,7 +74,7 @@ deploy resources = make them ready to be used
 
 
 
-## 1.Define the service
+## Part 1: Define the service
 
 First, we have to define what we want to build. Our **requirements** are: 
 
@@ -100,7 +100,7 @@ the job) and send multiple requests. We want to avoid that.
 
 What is the solution? We should use **asyncronous** jobs. We create a **queue**, 
 save the request, and send the results back to the user when they are 
-ready. We will use [Redis](https://redis.io/) for handling the queue.
+ready. We will use a simple database for handling the queue.
 
 ![/classification POST](images/classification_post.png)
 
@@ -136,11 +136,72 @@ server.
 
 ---
 
+# Did you notice?
+We haven't even named a single software until now... For what is worth, 
+our application might not even be written in Python! Before diving into 
+tools for building our server, it is important to know what tools can help 
+us design and maintain our code.
+
+---
+
 ### Tools for developers
 
-* [Swagger](https://swagger.io/)
-* [GitHub](https://github.com/)
+* [Swagger](https://swagger.io/): tool for designing and **documenting** APIs, 
+using the [Open API specifications](https://www.openapis.org/). 
+* [GitHub](https://github.com/): service that hosts the versioned source code of
+our application.
+
+We are not going to write the API definition in swagger, but this is how 
+they look like:
+![open api](images/openapi.png)
+
+And [here](https://app.swaggerhub.com/apis-docs/Maupin1991/ml-server/1.0#/) 
+we can find the APIs we have to create, rendered by Swagger.
+
+---
 
 ### Building blocks
 
+Now we can finally choose the building blocks of our application.
+
+**shopping list**
+* a "box"
+* a web server
+* something for storing the queue
+* some worker that will process the requests
+* some storage (so that we can keep the resources locally instead of 
+  downloading them every time)
+
+
+---
+
+**shopping list**
+* [Docker](https://www.docker.com/) (a "box")
+* [Flask](https://flask.palletsprojects.com/en/1.1.x/) (a web server)
+* [Redis](https://redis.io/) (something for storing the queue)
+* Python + [Pytorch](https://pytorch.org/) (some worker that will process the requests)
+* [Docker Volume](https://docs.docker.com/storage/volumes/) - some storage (so that we can keep the resources locally instead of 
+  downloading them every time)
+
+
 ![architecture](images/architecture.png)
+
+---
+
+This seems a very complicated architecture, but we are lucky! Docker 
+has the perfect tool for this!
+[Docker-compose](https://docs.docker.com/compose/) allows to define a 
+"map" of our service, including several containers that can be interconnected 
+through open ports.
+
+---
+
+Now that we have a rough idea of what are the steps, we can start writing 
+some code!
+
+---
+
+## Part 2: Getting started with the code
+
+
+
