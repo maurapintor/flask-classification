@@ -89,14 +89,48 @@ right away, but the risk is that if we don't have the right start we might have
 to rewrite the code many times. It is better to take a moment to think about 
 the structure of our application. 
 
+#### Use cases and architecture
 
+The user should be able to send a request for an image classification job. 
+A thing that we want to consider is that the user expects a quick response 
+from the server. Remember, it's not necessary to provide the result already, 
+but we need to tell the user we heard him. If we don't do so, the user might 
+get annoyed (in the meanwhile the server cannot respond because it is running 
+the job) and send multiple requests. We want to avoid that.
 
+What is the solution? We should use **asyncronous** jobs. We create a **queue**, 
+save the request, and send the results back to the user when they are 
+ready. We will use [Redis](https://redis.io/) for handling the queue.
 
 ![/classification POST](images/classification_post.png)
 
+The webserver enqueues the job and returns to the user a "ticket" for 
+getting the results, when they are ready. The "ticket" will be the 
+ID of the job.
+
+The worker, another service of our webserver, takes the enqueued jobs 
+with a FIFO (First-In-First-Out) schedule, processes the requests, and 
+stores the results in redis, with the job ID as Key for accessing the 
+newly-produced data.
 
 ![/classification POST worker](images/classification_post_sequel.png)
 
+After some (short) time, the user should be able to send a request to 
+the server, providing the job id, and getting the results as a response.
+
 ![/classification GET](images/classification_get.png)
 
+What is the advantage of having modularity and forcing ourselves to 
+separate every component? It will be easier, if we have too many requests, 
+to scale up the services!
+
 ![scaling workers](images/multiple_workers.png)
+
+Finally, it is important to provide help for the user in order to allow 
+exploration of the service. We might want to implement an additional API 
+that returns the list of possible resources available. We will keep it 
+simple and just store a list of all models and images available in our 
+server.
+
+---
+
