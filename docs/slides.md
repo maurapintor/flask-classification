@@ -132,5 +132,15 @@ that returns the list of possible resources available. We will keep it
 simple and just store a list of all models and images available in our 
 server.
 
+![get info](images/info_get.png)
+
 ---
 
+### Tools for developers
+
+* [Swagger](https://swagger.io/)
+* [GitHub](https://github.com/)
+
+### Building blocks
+
+![architecture](images/architecture.png)
