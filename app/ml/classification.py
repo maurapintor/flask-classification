@@ -5,16 +5,11 @@ image and returns the top-5 classification labels and scores.
 import io
 import json
 
+import importlib
 import requests
 import torch
 from PIL import Image
-from torchvision import models, transforms
-
-model_zoo = {
-    "resnet50": models.resnet50,
-    "alexnet": models.alexnet,
-    "vgg16": models.vgg16,
-}
+from torchvision import transforms
 
 def fetch_image(url):
     r = requests.get(url)
@@ -31,13 +26,18 @@ def get_labels():
     return labels
 
 def get_model(model_id):
-    pass
+    try:
+        module = importlib.import_module('torchvision.models')
+        return module.__getattribute__(model_id)(pretrained=True)
+    except ImportError as e:
+        # TODO add something that makes sense
+        print("error", str(e))
 
 
 def classify_image(img_path):
     # fetch model+image and returns top 5 clf scores
     img = fetch_image(img_path)
-    model = models.resnet18(pretrained=True)
+    model = get_model("resnet18")
     model.eval()
     transform = transforms.Compose((
         transforms.Resize(256),
@@ -65,3 +65,5 @@ if __name__ == '__main__':
     out = classify_image(img_path)
     for row in out:
         print(row)
+
+    get_model('resnet18')
