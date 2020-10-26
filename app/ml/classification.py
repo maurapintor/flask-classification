@@ -2,18 +2,25 @@
 This is a simple classification service. It accepts an url of an
 image and returns the top-5 classification labels and scores.
 """
+import importlib
 import io
 import json
+import logging
+import os
 
 import requests
 import torch
 from PIL import Image
-from torchvision import models, transforms
+from torchvision import transforms
+
+from config import Configuration
+
+conf = Configuration()
 
 
-def fetch_image(url):
-    r = requests.get(url)
-    img = Image.open(io.BytesIO(r.content))
+def fetch_image(image_id):
+    image_path = os.path.join(conf.image_folder_path, image_id)
+    img = Image.open(image_path)
     return img
 
 
@@ -26,10 +33,21 @@ def get_labels():
     return labels
 
 
+def get_model(model_id):
+    if model_id in conf.models:
+        try:
+            module = importlib.import_module('torchvision.models')
+            return module.__getattribute__(model_id)(pretrained=True)
+        except ImportError:
+            logging.error("Model {} not found".format(model_id))
+    else:
+        return None
+
+
 def classify_image(img_path):
     # fetch model+image and returns top 5 clf scores
     img = fetch_image(img_path)
-    model = models.resnet18(pretrained=True)
+    model = get_model("resnet18")
     model.eval()
     transform = transforms.Compose((
         transforms.Resize(256),
@@ -53,7 +71,7 @@ def classify_image(img_path):
 
 
 if __name__ == '__main__':
-    img_path = 'https://en.upali.ch/wp-content/uploads/2016/11/arikanischer-ruessel.jpg'
+    img_path = 'n01534433_junco.JPEG'
     out = classify_image(img_path)
     for row in out:
         print(row)

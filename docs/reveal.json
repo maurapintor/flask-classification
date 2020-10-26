@@ -1,0 +1,9 @@
+{
+  "controls": false,
+  "progress": true,
+  "slideNumber": "c/t",
+  "transition": "fade",
+  "mouseWheel": false,
+  "transitionSpeed": "fast"
+}
+
