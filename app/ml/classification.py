@@ -2,12 +2,12 @@
 This is a simple classification service. It accepts an url of an
 image and returns the top-5 classification labels and scores.
 """
+import importlib
 import io
 import json
 import logging
 import os
 
-import importlib
 import requests
 import torch
 from PIL import Image
@@ -16,6 +16,7 @@ from torchvision import transforms
 from config import Configuration
 
 conf = Configuration()
+
 
 def fetch_image(image_id):
     image_path = os.path.join(conf.image_folder_path, image_id)
@@ -30,6 +31,7 @@ def get_labels():
     r = requests.get(imagenet_labels_path)
     labels = json.load(io.StringIO(r.text))
     return labels
+
 
 def get_model(model_id):
     if model_id in conf.models:
