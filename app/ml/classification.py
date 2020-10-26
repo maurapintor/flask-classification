@@ -4,6 +4,8 @@ image and returns the top-5 classification labels and scores.
 """
 import io
 import json
+import logging
+import os
 
 import importlib
 import requests
@@ -11,9 +13,13 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-def fetch_image(url):
-    r = requests.get(url)
-    img = Image.open(io.BytesIO(r.content))
+from config import Configuration
+
+conf = Configuration()
+
+def fetch_image(image_id):
+    image_path = os.path.join(conf.image_folder_path, image_id)
+    img = Image.open(image_path)
     return img
 
 
@@ -26,12 +32,14 @@ def get_labels():
     return labels
 
 def get_model(model_id):
-    try:
-        module = importlib.import_module('torchvision.models')
-        return module.__getattribute__(model_id)(pretrained=True)
-    except ImportError as e:
-        # TODO add something that makes sense
-        print("error", str(e))
+    if model_id in conf.models:
+        try:
+            module = importlib.import_module('torchvision.models')
+            return module.__getattribute__(model_id)(pretrained=True)
+        except ImportError:
+            logging.error("Model {} not found".format(model_id))
+    else:
+        return None
 
 
 def classify_image(img_path):
@@ -61,9 +69,7 @@ def classify_image(img_path):
 
 
 if __name__ == '__main__':
-    img_path = 'https://en.upali.ch/wp-content/uploads/2016/11/arikanischer-ruessel.jpg'
+    img_path = 'n01534433_junco.JPEG'
     out = classify_image(img_path)
     for row in out:
         print(row)
-
-    get_model('resnet18')

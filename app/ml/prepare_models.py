@@ -1,8 +1,18 @@
-import torchvision.models as models
+import importlib
+import logging
 
-model_keys = []
-for model in [models.resnet18, models.alexnet,
-              models.vgg16, models.inception_v3]:
-    m = model(pretrained=True)  # downloads model
-    model_keys.append(model.__name__)  # creates list of keys
-    del m  # free up memory
+from config import Configuration
+
+conf = Configuration()
+
+
+def prepare_models():
+    """Pre-downloads the models specified in the configuration object."""
+    for model_name in conf.models:
+        try:
+            module = importlib.import_module('torchvision.models')
+            # download model
+            _ = module.__getattribute__(model_name)(pretrained=True)
+            del _  # free up memory
+        except ImportError:
+            logging.error("Model {} not found".format(model_name))
