@@ -180,9 +180,6 @@ Now we can finally choose the building blocks of our application.
 * [Flask](https://flask.palletsprojects.com/en/1.1.x/) (a web server)
 * [Redis](https://redis.io/) (something for storing the queue)
 * Python + [Pytorch](https://pytorch.org/) (some worker that will process the requests)
-* [Docker Volume](https://docs.docker.com/storage/volumes/) - some storage (so that we can keep the resources locally instead of 
-  downloading them every time)
-
 
 ![architecture](images/architecture.png)
 
@@ -202,6 +199,93 @@ some code!
 ---
 
 ## Part 2: Getting started with the code
+
+Download the repository (run a terminal in the directory where you 
+want to download it, or `cd` into that from your home directory): 
+
+```shell script
+git clone https://github.com/maurapintor/flask-classification.git
+```
+
+First, we will try and run the server locally. We can just run the script 
+`runserver.py` and see what happens.
+
+```text
+
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+
+```
+
+This is a simple Python server running **locally** on our computer. This 
+means that there is a service that is listening in the localhost address 
+(0.0.0.0), port 5000, waiting for HTTP requests.
+
+---
+
+Let's explore the code repository. It's a good practice to start from the 
+`Readme.md` file and the `requirements.txt`. These are files that describe 
+what the repository is for, and what is needed to run it. 
+The requirements file is like a shopping list. We can install all the 
+libraries we need by typing: 
+
+```shell script
+pip install -r requirements.txt
+```
+
+---
+
+Then, we can explore the `app` directory. We are not covering all the 
+code in this lesson, but [here](https://maurapintor.github.io/files/web-servers.pdf) 
+there is a tutorial about web servers with Flask.
+
+---
+
+For this lesson, we are interested in the following packages:
+
+* `app/routes`: where we have to write the code for our APIs
+* `app/ml`: the code for running the machine learning tasks. We have 
+to read and understand how to use this code for running our classification 
+service.
+* `app/utils`: here we can find utilities that can help us build our APIs.
+
+---
+
+We can start by implementing the easiest one: the info api.
+Go to `app/routes/info.py`.
+
+
+---
+
+```python
+from app import app
+from app.utils.list_images import list_images
+
+from config import Configuration
+
+conf = Configuration()
+
+@app.route('/info', methods=['GET'])
+def info():
+    """Returns a dictionary with the list of models and 
+    the list of available image files."""
+    data = dict()
+    data['models'] = conf.models
+    data['images'] = list_images()
+    return data
+```
+
+---
+
+Now let's run the server and 
+try the url: [http://0.0.0.0:5000/info](http://0.0.0.0:5000/info)
+
+---
+
+Now that we get the idea, we should try and fix the API for 
+`app/classifications`. Let's ignore for now the fact that we have to 
+build a queue.
+
+---
 
 
 

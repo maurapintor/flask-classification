@@ -1,8 +1,11 @@
+import json
 import os
 import shutil
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
+
+import requests
 
 from config import Configuration
 
@@ -16,10 +19,24 @@ def prepare_images():
         with urlopen(zip_url) as zipresp:
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(img_folder)
-    else:
-        sub_dir = os.path.join(img_folder, 'imagenet-sample-images-master')
-        if os.path.exists(sub_dir):
-            files = os.listdir(sub_dir)
-            for f in files:
-                shutil.move(os.path.join(sub_dir, f), img_folder)
-            shutil.rmtree(sub_dir)
+    sub_dir = os.path.join(img_folder, 'imagenet-sample-images-master')
+    if os.path.exists(sub_dir):
+        files = os.listdir(sub_dir)
+        for f in files:
+            shutil.move(os.path.join(sub_dir, f), img_folder)
+        shutil.rmtree(sub_dir)
+
+
+def prepare_labels():
+    """Saves a JSON file containing Imagenet labels as a list where
+    the index is the label ID of the class."""
+    img_folder = Configuration().image_folder_path
+    labels_path = os.path.join(img_folder, 'imagenet_labels.json')
+    imagenet_labels_path = "https://raw.githubusercontent.com/" \
+                           "anishathalye/imagenet-simple-labels/" \
+                           "master/imagenet-simple-labels.json"
+    r = requests.get(imagenet_labels_path)
+    data = r.json()
+    with open(labels_path, 'w') as f:
+        json.dump(data, f)
+
