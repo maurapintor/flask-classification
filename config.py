@@ -11,3 +11,9 @@ class Configuration:
     models = ('resnet18', 'alexnet', 'vgg16', 'inception_v3',)
     # web server
     SECRET_KEY = os.environ.get('SECRET_KEY') or '9cj328s61hsd8'
+    # queue
+    REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+    REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+
+    REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
+    QUEUE = "classification"
