@@ -247,6 +247,9 @@ For this lesson, we are interested in the following packages:
 to read and understand how to use this code for running our classification 
 service.
 * `app/utils`: here we can find utilities that can help us build our APIs.
+* `app/forms`: these are forms that can be used for asking specific 
+questions (which model? which image?) to the user. We will implement 
+this as a drop down menu.
 
 ---
 
@@ -286,6 +289,98 @@ Now that we get the idea, we should try and fix the API for
 build a queue.
 
 ---
+
+Let's explore the code in `app/ml/classification_utils.py`.
+By reading the docstring (or even just the function name), try to create 
+a mental map of what we need in our classification API.
+
+---
+
+First, we have to create a form for the user to submit the request. 
+See what we already have in `forms/classification_form.py`. 
+
+---
+
+```python
+
+from flask import render_template
+
+from app import app
+from app.forms.classification_form import ClassificationForm
+
+
+@app.route('/classifications', methods=['GET', 'POST'])
+def classifications():
+    form = ClassificationForm()
+    if form.validate_on_submit():
+        image_id = form.image.data
+        model_id = form.model.data
+        clf_output = ()  # todo get classification output
+        result = dict(
+            image_id=image_id,
+            model_id=model_id,
+            data=clf_output)  # ignore this for now
+        return dict(image_id=image_id, model_id=model_id)
+
+        # return render_template('classification_output.html', results=result)
+
+    return render_template('classification_select.html', form=form)
+```
+
+---
+
+Let's also return our classification output and see what happens:
+```python
+clf_output = classify_image(model_id=model_id, img_id=image_id)
+```
+
+---
+
+The final version of our code should look like this: 
+
+```python
+
+from flask import render_template
+
+from app import app
+from app.forms.classification_form import ClassificationForm
+from app.ml.classification_utils import classify_image
+
+
+@app.route('/classifications', methods=['GET', 'POST'])
+def classifications():
+    form = ClassificationForm()
+    if form.validate_on_submit():
+        image_id = form.image.data,
+        model_id = form.model.data
+        clf_output = classify_image(model_id=model_id, img_id=image_id)
+        result = dict(
+            image_id=image_id,
+            model_id=model_id,
+            data=clf_output)
+
+        return render_template('classification_output.html', results=result)
+
+    return render_template('classification_select.html', form=form)
+
+```
+
+---
+
+Now, if you re-run the server, you should see the list of available 
+models and images as a form. We won't inspect how this is rendered in 
+the front-end, but of course remember that we created a form object 
+that is passed through the Flask APIs to the HTML file we are 
+rendering with the instruction "render_template".
+
+---
+
+If we click on submit, the classification output should appear in our 
+browser as a table with the top 5 scores.
+
+---
+
+
 
 
 
