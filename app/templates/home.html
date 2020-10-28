@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <p>This service provides the output scores for popular deep networks
+
+    <p style="margin-top:1cm;">This service provides the output scores for popular deep networks
         from the <a href="https://pytorch.org/docs/stable/torchvision/models.html">
             Torchvision model zoo</a>. Go
         <a href={{ url_for("classifications") }}>here</a> for
         trying out the service.</p>
+    <p style="margin-top:1cm;">For the list of models and images
+        available, click
+        <a href={{ url_for("info") }}>here</a>.</p>
 {% endblock %}

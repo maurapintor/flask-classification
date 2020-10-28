@@ -349,6 +349,9 @@ from app.ml.classification_utils import classify_image
 
 @app.route('/classifications', methods=['GET', 'POST'])
 def classifications():
+    """API for selecting a model and an image and running a 
+    classification job. Returns the output scores from the 
+    model."""
     form = ClassificationForm()
     if form.validate_on_submit():
         image_id = form.image.data,
