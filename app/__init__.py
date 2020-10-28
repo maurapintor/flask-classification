@@ -1,7 +1,4 @@
-import redis
 from flask import Flask
-from rq import Queue
-
 
 from config import Configuration
 
@@ -14,5 +11,3 @@ app.config.from_object(config)
 from app import routes
 
 app.run(host='0.0.0.0')
-r = redis.Redis()
-q = Queue(connection=r)

@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import shutil
 from io import BytesIO
@@ -25,7 +26,7 @@ def prepare_images():
         for f in files:
             shutil.move(os.path.join(sub_dir, f), img_folder)
         shutil.rmtree(sub_dir)
-
+    logging.info(f"Images downloaded and stored in {img_folder}.")
 
 def prepare_labels():
     """Saves a JSON file containing Imagenet labels as a list where
@@ -39,4 +40,9 @@ def prepare_labels():
     data = r.json()
     with open(labels_path, 'w') as f:
         json.dump(data, f)
+    logging.info(f"Labels downloaded and stored in {labels_path}.")
 
+
+if __name__ == '__main__':
+    prepare_images()
+    prepare_labels()
