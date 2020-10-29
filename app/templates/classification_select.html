@@ -5,12 +5,18 @@
     <h1>Select Model and Image</h1>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <p>
-            Model: {{ form.model }}
-        </p>
-        <p>
-            Image: {{ form.image }}
-        </p>
-        <p>{{ form.submit() }}</p>
+            <h4>
+                Model:
+            </h4>
+            <p>
+                {{ form.model }}
+            </p>
+            <h4>
+                Image:
+            </h4>
+            <p>
+                {{ form.image }}
+            </p>
+        <button type="submit" class="btn btn-dark mb-2">Submit</button>
     </form>
 {% endblock %}

@@ -44,18 +44,18 @@ function makeGraph(results) {
                 label: 'Output scores',
                 data: [results[0][1], results[1][1], results[2][1], results[3][1], results[4][1]],
                 backgroundColor: [
-                    'rgba(54, 162, 23, 0.8)',
-                    'rgba(255,0,53, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgb(83,117,221, 0.8)',
-                    'rgb(186,93,225, 0.8)',
+                    'rgba(26,74,4,0.8)',
+                    'rgba(117,0,20,0.8)',
+                    'rgba(121,87,3,0.8)',
+                    'rgba(6,33,108,0.8)',
+                    'rgba(63,3,85,0.8)',
                 ],
                 borderColor: [
-                    'rgba(54, 162, 23)',
-                    'rgba(255,0,53)',
-                    'rgba(255, 206, 86)',
-                    'rgb(83,117,221)',
-                    'rgb(186,93,225)',
+                    'rgba(26,74,4)',
+                    'rgba(117,0,20)',
+                    'rgba(121,87,3)',
+                    'rgba(6,33,108)',
+                    'rgba(63,3,85)',
                 ],
                 borderWidth: 1
             }]
