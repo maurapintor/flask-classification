@@ -520,7 +520,63 @@ We won't take care of it for now, but you are free to use it as practice!
 
 ---
 
-* volume - prepare
+```dockerfile
+FROM python:3.7
+
+# We copy just the requirements.txt first to leverage Docker cache
+COPY ./requirements.txt /app/requirements.txt
+
+WORKDIR /app
+
+RUN pip install -r requirements.txt
+
+ADD . ./
+
+```
+
+---
+
+```yaml
+web:
+  build: .
+  command: python runserver.py
+  ports:
+    - "5000:5000"
+  links:
+    - redisdb
+  environment:
+  - REDIS_HOST=redisdb
+  - REDIS_PORT=6378
+  volumes:
+    - ~/.cache/torch:/root/.cache/torch
+
+
+redisdb:
+  image: "redis"
+  command: --port 6378
+  ports:
+    - "6378:6378"
+
+
+worker:
+  build: .
+  command: python worker.py
+  links:
+    - redisdb
+  environment:
+  - REDIS_HOST=redisdb
+  - REDIS_PORT=6378
+  volumes:
+    - ~/.cache/torch:/root/.cache/torch
+
+```
+
+
 * scale up workers
 
+```shell script
+docker-compose up --scale worker=2
+```
+
+---
 
