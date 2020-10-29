@@ -180,9 +180,6 @@ Now we can finally choose the building blocks of our application.
 * [Flask](https://flask.palletsprojects.com/en/1.1.x/) (a web server)
 * [Redis](https://redis.io/) (something for storing the queue)
 * Python + [Pytorch](https://pytorch.org/) (some worker that will process the requests)
-* [Docker Volume](https://docs.docker.com/storage/volumes/) - some storage (so that we can keep the resources locally instead of 
-  downloading them every time)
-
 
 ![architecture](images/architecture.png)
 
@@ -202,6 +199,191 @@ some code!
 ---
 
 ## Part 2: Getting started with the code
+
+Download the repository (run a terminal in the directory where you 
+want to download it, or `cd` into that from your home directory): 
+
+```shell script
+git clone https://github.com/maurapintor/flask-classification.git
+```
+
+First, we will try and run the server locally. We can just run the script 
+`runserver.py` and see what happens.
+
+```text
+
+ * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+
+```
+
+This is a simple Python server running **locally** on our computer. This 
+means that there is a service that is listening in the localhost address 
+(0.0.0.0), port 5000, waiting for HTTP requests.
+
+---
+
+Let's explore the code repository. It's a good practice to start from the 
+`Readme.md` file and the `requirements.txt`. These are files that describe 
+what the repository is for, and what is needed to run it. 
+The requirements file is like a shopping list. We can install all the 
+libraries we need by typing: 
+
+```shell script
+pip install -r requirements.txt
+```
+
+---
+
+Then, we can explore the `app` directory. We are not covering all the 
+code in this lesson, but [here](https://maurapintor.github.io/files/web-servers.pdf) 
+there is a tutorial about web servers with Flask.
+
+---
+
+For this lesson, we are interested in the following packages:
+
+* `app/routes`: where we have to write the code for our APIs
+* `app/ml`: the code for running the machine learning tasks. We have 
+to read and understand how to use this code for running our classification 
+service.
+* `app/utils`: here we can find utilities that can help us build our APIs.
+* `app/forms`: these are forms that can be used for asking specific 
+questions (which model? which image?) to the user. We will implement 
+this as a drop down menu.
+
+---
+
+We can start by implementing the easiest one: the info api.
+Go to `app/routes/info.py`.
+
+
+---
+
+```python
+from app import app
+from app.utils.list_images import list_images
+
+from config import Configuration
+
+conf = Configuration()
+
+@app.route('/info', methods=['GET'])
+def info():
+    """Returns a dictionary with the list of models and 
+    the list of available image files."""
+    data = dict()
+    data['models'] = conf.models
+    data['images'] = list_images()
+    return data
+```
+
+---
+
+Now let's run the server and 
+try the url: [http://0.0.0.0:5000/info](http://0.0.0.0:5000/info)
+
+---
+
+Now that we get the idea, we should try and fix the API for 
+`app/classifications`. Let's ignore for now the fact that we have to 
+build a queue.
+
+---
+
+Let's explore the code in `app/ml/classification_utils.py`.
+By reading the docstring (or even just the function name), try to create 
+a mental map of what we need in our classification API.
+
+---
+
+First, we have to create a form for the user to submit the request. 
+See what we already have in `forms/classification_form.py`. 
+
+---
+
+```python
+
+from flask import render_template
+
+from app import app
+from app.forms.classification_form import ClassificationForm
+
+
+@app.route('/classifications', methods=['GET', 'POST'])
+def classifications():
+    form = ClassificationForm()
+    if form.validate_on_submit():
+        image_id = form.image.data
+        model_id = form.model.data
+        clf_output = ()  # todo get classification output
+        result = dict(
+            image_id=image_id,
+            model_id=model_id,
+            data=clf_output)  # ignore this for now
+        return dict(image_id=image_id, model_id=model_id)
+
+        # return render_template('classification_output.html', results=result)
+
+    return render_template('classification_select.html', form=form)
+```
+
+---
+
+Let's also return our classification output and see what happens:
+```python
+clf_output = classify_image(model_id=model_id, img_id=image_id)
+```
+
+---
+
+The final version of our code should look like this: 
+
+```python
+
+from flask import render_template
+
+from app import app
+from app.forms.classification_form import ClassificationForm
+from app.ml.classification_utils import classify_image
+
+
+@app.route('/classifications', methods=['GET', 'POST'])
+def classifications():
+    """API for selecting a model and an image and running a 
+    classification job. Returns the output scores from the 
+    model."""
+    form = ClassificationForm()
+    if form.validate_on_submit():
+        image_id = form.image.data,
+        model_id = form.model.data
+        clf_output = classify_image(model_id=model_id, img_id=image_id)
+        result = dict(
+            image_id=image_id,
+            model_id=model_id,
+            data=clf_output)
+
+        return render_template('classification_output.html', results=result)
+
+    return render_template('classification_select.html', form=form)
+
+```
+
+---
+
+Now, if you re-run the server, you should see the list of available 
+models and images as a form. We won't inspect how this is rendered in 
+the front-end, but of course remember that we created a form object 
+that is passed through the Flask APIs to the HTML file we are 
+rendering with the instruction "render_template".
+
+---
+
+If we click on submit, the classification output should appear in our 
+browser as a table with the top 5 scores.
+
+---
+
+
 
 
 

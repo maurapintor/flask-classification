@@ -16,3 +16,7 @@ def prepare_models():
             del _  # free up memory
         except ImportError:
             logging.error("Model {} not found".format(model_name))
+
+
+if __name__ == '__main__':
+    prepare_models()
