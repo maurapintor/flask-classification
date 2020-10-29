@@ -344,7 +344,7 @@ from flask import render_template
 
 from app import app
 from app.forms.classification_form import ClassificationForm
-from app.ml.classification_utils import classify_image
+from ml.classification_utils import classify_image
 
 
 @app.route('/classifications', methods=['GET', 'POST'])
@@ -354,7 +354,7 @@ def classifications():
     model."""
     form = ClassificationForm()
     if form.validate_on_submit():
-        image_id = form.image.data,
+        image_id = form.image.data
         model_id = form.model.data
         clf_output = classify_image(model_id=model_id, img_id=image_id)
         result = dict(
@@ -383,7 +383,144 @@ browser as a table with the top 5 scores.
 
 ---
 
+What happens if we get many requests? What happens if the classification 
+takes too long to process?
+
+If we don't send a response to users in a short time, they can get 
+bored with our service, or worse, send more requests!
+
+---
+
+The solution: implement a task queue.
+
+Whenever the user sends a request, the server returns a status code. 
+The web browser then can request the resource after a certain amount 
+of time, and check the status of the queue.
+
+---
+
+This pattern is called [polling](http://restalk-patterns.org/long-running-operation-polling.html), 
+and is a mechanism that allows Asynchronous long running operations with 
+the REST APIs.
+
+---
+
+First, we have to create a queue. We can do so in our classifications 
+handler, and enqueue the jobs as soon as they are requested by users.
+
+---
 
 
+```python
+import redis
+from flask import render_template
+from rq import Connection, Queue
+from rq.job import Job
+
+from app import app
+from app.forms.classification_form import ClassificationForm
+from ml.classification_utils import classify_image
+from config import Configuration
+
+config = Configuration()
+
+
+@app.route('/classifications', methods=['GET', 'POST'])
+def classifications():
+    """API for selecting a model and an image and running a 
+    classification job. Returns the output scores from the 
+    model."""
+    form = ClassificationForm()
+    if form.validate_on_submit():
+        image_id = form.image.data
+        model_id = form.model.data
+        redis_url = config.REDIS_URL
+        redis_connection = redis.from_url(redis_url)
+        with Connection(redis_connection):
+            q = Queue(name=config.QUEUE)
+            job = Job.create(classify_image, kwargs=dict(model_id=model_id,
+                                                         img_id=image_id))
+            task = q.enqueue_job(job)
+        return render_template('classification_output_queue.html', image_id=image_id, jobID=task.get_id())
+
+    return render_template('classification_select.html', form=form)
+```
+
+---
+
+```python
+
+import redis
+from rq import Connection, Queue
+
+from app import app
+from config import Configuration
+
+config = Configuration()
+
+@app.route('/classifications/<string:job_id>', methods=['GET'])
+def classifications_id(job_id):
+    redis_url = config.REDIS_URL
+    redis_connection = redis.from_url(redis_url)
+    with Connection(redis_connection):
+        q = Queue(name=config.QUEUE)
+        task = q.fetch_job(job_id)
+
+    response = {
+        'task_status': task.get_status(),
+        'data': task.result,
+    }
+    return response
+```
+
+---
+
+Now, we should run the worker and the server together.
+See also the output that they produce.
+ 
+**What is happening**
+
+* **frontend (html + javascript)**: the user requests the webpage.
+* **backend(python)**: the server returns the html with the image and 
+model selection.
+* **frontend (html + javascript)**: the user picks the model and the 
+image. The web browser issues the request to the backend server.
+* **backend(python)**: the server receives the request, 
+creates a task, and puts the task in the queue. Returns the id of 
+the stored job to the browser that issued the request. The server 
+redirects the browser to the results page.
+* **frontend (html + javascript)**: the web browser renders the 
+result page and asks for the job result with the id as parameter. If 
+the status of the job is "success", the server renders the resulting 
+output, otherwise it renders a temporary screen.
+
+In the meanwhile...
+
+* **the worker(python)**: The worker takes the 
+tasks from the queue and processes them, storing the result in the 
+database. The result is accessible by the id of the job.
+
+---
+
+This service works, but of course this is not the only requirement. 
+Aside from the other requirements that we may have, we have always to 
+add the "implicit" requirements of security, stability and documentation.
+
+For example, we should handle a request to a job id not existent, or to 
+a job that has the result "failed"...
+All the possible exceptions should terminate the request "gracefully". 
+With flask, it is also possible to set specific renderings for typical 
+HTTP error codes.
+
+We won't take care of it for now, but you are free to use it as practice!
+
+--- 
+
+## Containers
+
+---
+
+* volume - prepare
+* scale up workers
 
 
