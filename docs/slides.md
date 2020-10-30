@@ -1,24 +1,58 @@
 # ISDe course
 ## Web development
-### Maura Pintor - [maura.pintor@unica.it](mailto:maura.pintor@unica.it)
+### Maura Pintor  
+
+[maura.pintor@unica.it](mailto:maura.pintor@unica.it)
 
 ---
 
 What this lesson covers:
 
-Note: we are not going to start from scratch. We are going to clone a 
-repository that contains the structure of our code.
-
-What we have:
-* requirements
-* the definition of the APIs that we need to implement
-* the code for the classifier is already written, we are going to use it 
-as a **black box**. This means that we know what is the input and the expected 
-output, but we are not going to look inside the code.
+* designing APIs
+* inspecting code written by others
+* implementing a few basic APIs
+* creating a container
+* creating an architecture with isolated components
+* scaling up resources 
 
 ---
 
-## Part 0 : Web servers basics
+Let's imagine a scenario:
+
+> We are a team of developers in a company. The company 
+> assigned to our team the task of building a demo 
+> for showing to the clients how  our service of 
+> image classification works.
+
+---
+
+
+The code for the classifier is already written as it is a product 
+of our company, we are going to use it 
+as a **black box**. This means that we know what is the input 
+and the expected output, but we are not going to look inside the code.
+
+---
+
+Some people from the team has already started with this task, 
+so we are not going to start from scratch. 
+We can clone a repository that contains already some code.
+
+
+---
+
+### Requirements:
+
+Create a web server for image classification. It will be used 
+as a demo for our company, and they asked to create a container 
+that will be shared with our sales team.
+
+---
+
+
+---
+
+## Part 0 : Web servers, image classification, and containers
 
 ---
 
@@ -32,7 +66,7 @@ More info [here](https://en.wikipedia.org/wiki/Web_server).
 
 ### Web server for the developer
 
-![backend-frontend](images/backend-frontend.png)
+![backend-frontend](images/backend-frontend.png)<!-- .element height="70%" width="70%" -->
 
 More info [here](https://en.wikipedia.org/wiki/Front_and_back_ends).
 
@@ -42,14 +76,14 @@ More info [here](https://en.wikipedia.org/wiki/Front_and_back_ends).
 
 [![api-video](https://img.youtube.com/vi/s7wmiS2mSXY/0.jpg)](https://www.youtube.com/watch?v=s7wmiS2mSXY)
 
-More info [here](https://en.wikipedia.org/wiki/Application_programming_interface).
+More info about [APIs](https://en.wikipedia.org/wiki/Application_programming_interface).
 
 ---
 
 ### HTTP
 ![http-example](images/http-example.png)
 
-More info [here](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol).
+More info on [HTTP Protocol](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol).
 
 ---
 
@@ -68,79 +102,155 @@ More info [here](https://en.wikipedia.org/wiki/Localhost).
 
 ### Deployment
 
-![deployment](images/deploy.png)
+![deployment](images/deploy.png)<!-- .element height="60%" width="60%" -->
 
 deploy resources = make them ready to be used
 
+---
 
+## Image classification
+
+![image classification](images/image-classification.png)<!-- .element height="60%" width="60%" -->
+
+Want to know more? Check out this tutorial on 
+[image classification with PyTorch](https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html).
+
+---
+
+## Containers
+
+![containers](images/containers.png)  <!-- .element height="40%" width="40%" -->
+
+Some information about [containers](https://medium.com/@Edge2Ops/introduction-to-containers-b39a6559e054).
+
+Not only [Docker](https://github.com/containers/)...
+
+---
 
 ## Part 1: Define the service
 
-First, we have to define what we want to build. Our **requirements** are: 
+---
 
-* **a web app (frontend) that runs a simple ML algorithm for image classification (backend)**
-* inside a container - don't worry about it now
-* time constaint (always take into account)
 
-### Before start writing the code ...
+First, we have to define what we want to build. 
+
+---
+
+Our **requirements** are: 
+
+* **a web app that runs a simple ML algorithm for image classification.**
+* inside a **container** - don't worry about it now
+* **time constaint** (always take into account)
+
+---
+
+### Before start writing any code ...
 
 This is an important part of our development process. We can start writing code 
-right away, but the risk is that if we don't have the right start we might have 
-to rewrite the code many times. It is better to take a moment to think about 
+right away, but the risk is that we might have to rewrite the code many 
+times. It is better to take a moment to think about 
 the structure of our application. 
+
+---
 
 #### Use cases and architecture
 
-The user should be able to send a request for an image classification job. 
-A thing that we want to consider is that the user expects a quick response 
+The user should be able to send a request for an image classification job.
+ 
+![simple api](images/simple_api.png)
+
+What can the user change? What is fixed?
+
+---
+
+We decide that the user can only choose a specific model and 
+a specific image from a set of models and a set of images.
+
+---
+
+We hear from one of the ML developers that the service can take some time 
+for returning the results. 
+
+---
+
+What could go wrong in our demo?
+
+---
+
+A thing that we want to consider is that **the user expects a quick response** 
 from the server. Remember, it's not necessary to provide the result already, 
 but we need to tell the user we heard him. If we don't do so, the user might 
 get annoyed (in the meanwhile the server cannot respond because it is running 
 the job) and send multiple requests. We want to avoid that.
 
-What is the solution? We should use **asyncronous** jobs. We create a **queue**, 
-save the request, and send the results back to the user when they are 
+---
+
+What is the solution? 
+
+---
+
+The webserver enqueues the job and returns to the user a **"ticket"** for 
+getting the results, when they are ready. The "ticket" will be the 
+ID of the job.
+
+---
+
+We will implement **asyncronous** jobs. 
+
+We create a **queue**, 
+save the request, and store the results when they are 
 ready. We will use a simple database for handling the queue.
 
 ![/classification POST](images/classification_post.png)
 
-The webserver enqueues the job and returns to the user a "ticket" for 
-getting the results, when they are ready. The "ticket" will be the 
-ID of the job.
 
-The worker, another service of our webserver, takes the enqueued jobs 
-with a FIFO (First-In-First-Out) schedule, processes the requests, and 
-stores the results in redis, with the job ID as Key for accessing the 
+---
+
+The **worker**, another service of our webserver, takes the enqueued jobs 
+with a **FIFO** (First-In-First-Out) schedule, processes the requests, and 
+stores the results in the database, with the job ID as Key for accessing the 
 newly-produced data.
 
+---
+
 ![/classification POST worker](images/classification_post_sequel.png)
+
+---
 
 After some (short) time, the user should be able to send a request to 
 the server, providing the job id, and getting the results as a response.
 
 ![/classification GET](images/classification_get.png)
 
-What is the advantage of having modularity and forcing ourselves to 
-separate every component? It will be easier, if we have too many requests, 
-to scale up the services!
+---
 
-![scaling workers](images/multiple_workers.png)
-
-Finally, it is important to provide help for the user in order to allow 
-exploration of the service. We might want to implement an additional API 
-that returns the list of possible resources available. We will keep it 
-simple and just store a list of all models and images available in our 
-server.
-
-![get info](images/info_get.png)
+Now we have a rough image of what we want to build.
+We can always implement everything as a whole python script, but we 
+want to enforce **modularity**.
 
 ---
 
-# Did you notice?
+What is the advantage of having **modularity** ? It will be easier, if we have too many requests, 
+to scale up the services!
+
+---
+
+![scaling workers](images/multiple_workers.png)
+
+---
+
+# Notice something...
 We haven't even named a single software until now... For what is worth, 
 our application might not even be written in Python! Before diving into 
-tools for building our server, it is important to know what tools can help 
+tools for building our server, it is important to know exactly what we 
+need to do. 
+
+---
+
+Now we can introduce tools can help 
 us design and maintain our code.
+
+... Still no code yet!
 
 ---
 
@@ -151,9 +261,16 @@ using the [Open API specifications](https://www.openapis.org/).
 * [GitHub](https://github.com/): service that hosts the versioned source code of
 our application.
 
+---
+
 We are not going to write the API definition in swagger, but this is how 
 they look like:
-![open api](images/openapi.png)
+![open api](images/openapi.png)<!-- .element height="140%" width="140%" -->
+
+This is written in [YAML](https://en.wikipedia.org/wiki/YAML). We will see 
+another one in this lesson.
+
+---
 
 And [here](https://app.swaggerhub.com/apis-docs/Maupin1991/ml-server/1.0#/) 
 we can find the APIs we have to create, rendered by Swagger.
@@ -250,6 +367,16 @@ service.
 * `app/forms`: these are forms that can be used for asking specific 
 questions (which model? which image?) to the user. We will implement 
 this as a drop down menu.
+
+---
+
+As an exercise, we will implement an easy one. We want to 
+implement an additional API 
+that returns the list of possible resources available. We will keep it 
+simple and just store a list of all models and images available in our 
+server.
+
+![get info](images/info_get.png)
 
 ---
 
