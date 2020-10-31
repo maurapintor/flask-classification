@@ -1,7 +1,14 @@
+---
+title: ISDe course
+theme: league
+highlightTheme: github
+revealOptions:
+    transition: 'fade'
+---
+
 # ISDe course
 ## Web development
 ### Maura Pintor  
-
 [maura.pintor@unica.it](mailto:maura.pintor@unica.it)
 
 ---
@@ -74,7 +81,8 @@ More info [here](https://en.wikipedia.org/wiki/Front_and_back_ends).
 
 ### API
 
-[![api-video](https://img.youtube.com/vi/s7wmiS2mSXY/0.jpg)](https://www.youtube.com/watch?v=s7wmiS2mSXY)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/s7wmiS2mSXY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 More info about [APIs](https://en.wikipedia.org/wiki/Application_programming_interface).
 
@@ -203,7 +211,6 @@ ready. We will use a simple database for handling the queue.
 
 ![/classification POST](images/classification_post.png)
 
-
 ---
 
 The **worker**, another service of our webserver, takes the enqueued jobs 
@@ -265,7 +272,7 @@ our application.
 
 We are not going to write the API definition in swagger, but this is how 
 they look like:
-![open api](images/openapi.png)<!-- .element height="140%" width="140%" -->
+![open api](images/openapi.png)
 
 This is written in [YAML](https://en.wikipedia.org/wiki/YAML). We will see 
 another one in this lesson.
@@ -279,24 +286,23 @@ we can find the APIs we have to create, rendered by Swagger.
 
 ### Building blocks
 
-Now we can finally choose the building blocks of our application.
-
-**shopping list**
 * a "box"
 * a web server
-* something for storing the queue
-* some worker that will process the requests
-* some storage (so that we can keep the resources locally instead of 
-  downloading them every time)
+* a queue
+* some worker
+* some storage
 
 
 ---
 
-**shopping list**
+### Building blocks (with a name)
+
 * [Docker](https://www.docker.com/) (a "box")
 * [Flask](https://flask.palletsprojects.com/en/1.1.x/) (a web server)
-* [Redis](https://redis.io/) (something for storing the queue)
-* Python + [Pytorch](https://pytorch.org/) (some worker that will process the requests)
+* [Redis](https://redis.io/) (a queue)
+* Python + [Pytorch](https://pytorch.org/) (some worker)
+* [Docker volumes](https://docs.docker.com/storage/volumes/)(some storage)
+---
 
 ![architecture](images/architecture.png)
 
@@ -317,12 +323,17 @@ some code!
 
 ## Part 2: Getting started with the code
 
+---
+
 Download the repository (run a terminal in the directory where you 
 want to download it, or `cd` into that from your home directory): 
 
 ```shell script
 git clone https://github.com/maurapintor/flask-classification.git
 ```
+
+---
+
 
 First, we will try and run the server locally. We can just run the script 
 `runserver.py` and see what happens.
@@ -342,6 +353,9 @@ means that there is a service that is listening in the localhost address
 Let's explore the code repository. It's a good practice to start from the 
 `Readme.md` file and the `requirements.txt`. These are files that describe 
 what the repository is for, and what is needed to run it. 
+
+---
+
 The requirements file is like a shopping list. We can install all the 
 libraries we need by typing: 
 
@@ -357,22 +371,30 @@ there is a tutorial about web servers with Flask.
 
 ---
 
-For this lesson, we are interested in the following packages:
+These are the package of main interest for this lesson
 
-* `app/routes`: where we have to write the code for our APIs
-* `app/ml`: the code for running the machine learning tasks. We have 
-to read and understand how to use this code for running our classification 
-service.
-* `app/utils`: here we can find utilities that can help us build our APIs.
+* `app/routes`: our APIs are defined here
+* `app/utils`: utilities for building our APIs
 * `app/forms`: these are forms that can be used for asking specific 
 questions (which model? which image?) to the user. We will implement 
-this as a drop down menu.
+this as a drop down menu
 
 ---
 
-As an exercise, we will implement an easy one. We want to 
-implement an additional API 
-that returns the list of possible resources available. We will keep it 
+* `ml`: here we can find the code for running the machine learning tasks. 
+We have to read and understand how to use this code for running our 
+classification service.
+
+---
+
+As a first exercise, we will implement an easy one. 
+
+We want to the API 
+that returns the list of possible resources available. 
+
+---
+
+We will keep it 
 simple and just store a list of all models and images available in our 
 server.
 
@@ -386,6 +408,11 @@ Go to `app/routes/info.py`.
 
 ---
 
+
+---
+
+### This is the implemented API
+
 ```python
 from app import app
 from app.utils.list_images import list_images
@@ -393,6 +420,9 @@ from app.utils.list_images import list_images
 from config import Configuration
 
 conf = Configuration()
+```
+
+```python
 
 @app.route('/info', methods=['GET'])
 def info():
@@ -412,51 +442,38 @@ try the url: [http://0.0.0.0:5000/info](http://0.0.0.0:5000/info)
 ---
 
 Now that we get the idea, we should try and fix the API for 
-`app/classifications`. Let's ignore for now the fact that we have to 
+`app/classifications`. 
+
+Let's ignore for now the fact that we have to 
 build a queue.
 
 ---
 
-Let's explore the code in `app/ml/classification_utils.py`.
+Let's explore the code in `ml/classification_utils.py`.
+
 By reading the docstring (or even just the function name), try to create 
 a mental map of what we need in our classification API.
 
 ---
 
-First, we have to create a form for the user to submit the request. 
-See what we already have in `forms/classification_form.py`. 
+First, we have to define a form for the user to submit the request. 
+
+
+See what we already have in `app/forms/classification_form.py`. 
+<!-- .element: class="fragment" -->
 
 ---
 
-```python
-
-from flask import render_template
-
-from app import app
-from app.forms.classification_form import ClassificationForm
-
-
-@app.route('/classifications', methods=['GET', 'POST'])
-def classifications():
-    form = ClassificationForm()
-    if form.validate_on_submit():
-        image_id = form.image.data
-        model_id = form.model.data
-        clf_output = ()  # todo get classification output
-        result = dict(
-            image_id=image_id,
-            model_id=model_id,
-            data=clf_output)  # ignore this for now
-        return dict(image_id=image_id, model_id=model_id)
-
-        # return render_template('classification_output.html', results=result)
-
-    return render_template('classification_select.html', form=form)
-```
+Now let's go to `app/classifications.py` and try to implement the API that 
+we need.
 
 ---
 
-Let's also return our classification output and see what happens:
+---
+
+We should get the classification output with our machine learning 
+utilities: 
+
 ```python
 clf_output = classify_image(model_id=model_id, img_id=image_id)
 ```
@@ -466,42 +483,42 @@ clf_output = classify_image(model_id=model_id, img_id=image_id)
 The final version of our code should look like this: 
 
 ```python
-
 from flask import render_template
 
 from app import app
 from app.forms.classification_form import ClassificationForm
 from ml.classification_utils import classify_image
+```
 
+```python
 
 @app.route('/classifications', methods=['GET', 'POST'])
 def classifications():
-    """API for selecting a model and an image and running a 
-    classification job. Returns the output scores from the 
-    model."""
     form = ClassificationForm()
     if form.validate_on_submit():
         image_id = form.image.data
         model_id = form.model.data
-        clf_output = classify_image(model_id=model_id, img_id=image_id)
-        result = dict(
-            image_id=image_id,
-            model_id=model_id,
-            data=clf_output)
-
-        return render_template('classification_output.html', results=result)
-
-    return render_template('classification_select.html', form=form)
+        clf_output = classify_image(model_id=model_id, 
+                                    img_id=image_id)
+        result = dict(image_id=image_id,model_id=model_id,
+                      data=clf_output)
+        return render_template('classification_output.html', 
+                               results=result)
+    return render_template('classification_select.html', 
+                           form=form)
+                
 
 ```
 
 ---
 
 Now, if you re-run the server, you should see the list of available 
-models and images as a form. We won't inspect how this is rendered in 
+models and images as a form. 
+
+We won't inspect how this is rendered in 
 the front-end, but of course remember that we created a form object 
 that is passed through the Flask APIs to the HTML file we are 
-rendering with the instruction "render_template".
+rendering with the instruction `render_template`.
 
 ---
 
@@ -520,6 +537,8 @@ bored with our service, or worse, send more requests!
 
 The solution: implement a task queue.
 
+---
+
 Whenever the user sends a request, the server returns a status code. 
 The web browser then can request the resource after a certain amount 
 of time, and check the status of the queue.
@@ -537,41 +556,58 @@ handler, and enqueue the jobs as soon as they are requested by users.
 
 ---
 
+Let's edit `app/routes/classifications.py`
+
+---
+
+---
+
 
 ```python
 import redis
 from flask import render_template
 from rq import Connection, Queue
 from rq.job import Job
-
-from app import app
-from app.forms.classification_form import ClassificationForm
-from ml.classification_utils import classify_image
-from config import Configuration
-
-config = Configuration()
-
-
+...
 @app.route('/classifications', methods=['GET', 'POST'])
 def classifications():
-    """API for selecting a model and an image and running a 
-    classification job. Returns the output scores from the 
-    model."""
-    form = ClassificationForm()
+    ...
     if form.validate_on_submit():
-        image_id = form.image.data
-        model_id = form.model.data
+        ...
+```
+
+```python
         redis_url = config.REDIS_URL
         redis_connection = redis.from_url(redis_url)
         with Connection(redis_connection):
             q = Queue(name=config.QUEUE)
-            job = Job.create(classify_image, kwargs=dict(model_id=model_id,
-                                                         img_id=image_id))
+            job = Job.create(classify_image, 
+                             kwargs=dict(model_id=model_id,
+                                         img_id=image_id))
             task = q.enqueue_job(job)
-        return render_template('classification_output_queue.html', image_id=image_id, jobID=task.get_id())
-
-    return render_template('classification_select.html', form=form)
+        return render_template('classification_output_queue.html', 
+                               image_id=image_id, 
+                               jobID=task.get_id())
+    ...
 ```
+
+---
+
+Notice that the HTML form that we are using has a `<script>` tag, which 
+is running a `JavaScript` fragment. We are not going to edit that, 
+but I will tell you what it is going on...
+
+---
+
+The script is run at the first time when the HTML is rendered. Inside 
+that, we have a polling mechanism that keeps asking for the 
+resource `/classfications/{JobID}` every second, until the output 
+JSON of the API says `"status": "success"`.
+
+---
+
+Now we should return that status and eventually the job 
+result in our `app/classifications_id.py` file.
 
 ---
 
@@ -579,7 +615,6 @@ def classifications():
 
 import redis
 from rq import Connection, Queue
-
 from app import app
 from config import Configuration
 
@@ -592,7 +627,9 @@ def classifications_id(job_id):
     with Connection(redis_connection):
         q = Queue(name=config.QUEUE)
         task = q.fetch_job(job_id)
+```
 
+```python
     response = {
         'task_status': task.get_status(),
         'data': task.result,
@@ -604,28 +641,52 @@ def classifications_id(job_id):
 
 Now, we should run the worker and the server together.
 See also the output that they produce.
- 
-**What is happening**
 
-* **frontend (html + javascript)**: the user requests the webpage.
-* **backend(python)**: the server returns the html with the image and 
+---
+<!-- .slide: style="text-align: left;"> -->  
+ 
+#### What is happening (1/3):
+
+**frontend (html + javascript)**: the user requests the webpage.
+<!-- .element: class="fragment" -->
+
+**backend(python)**: the server returns the html with the image and 
 model selection.
-* **frontend (html + javascript)**: the user picks the model and the 
+<!-- .element: class="fragment" -->
+
+**frontend (html + javascript)**: the user picks the model and the 
 image. The web browser issues the request to the backend server.
-* **backend(python)**: the server receives the request, 
+<!-- .element: class="fragment" -->
+
+---
+<!-- .slide: style="text-align: left;"> -->  
+
+#### What is happening (2/3):
+
+**backend(python)**: the server receives the request, 
 creates a task, and puts the task in the queue. Returns the id of 
 the stored job to the browser that issued the request. The server 
 redirects the browser to the results page.
-* **frontend (html + javascript)**: the web browser renders the 
+<!-- .element: class="fragment" -->
+
+**frontend (html + javascript)**: the web browser renders the 
 result page and asks for the job result with the id as parameter. If 
 the status of the job is "success", the server renders the resulting 
 output, otherwise it renders a temporary screen.
+<!-- .element: class="fragment" -->
+
+---
+<!-- .slide: style="text-align: left;"> -->  
+
+#### What is happening (3/3):
 
 In the meanwhile...
 
-* **the worker(python)**: The worker takes the 
+**the worker(python)**: The worker takes the 
 tasks from the queue and processes them, storing the result in the 
 database. The result is accessible by the id of the job.
+<!-- .element: class="fragment" -->
+
 
 ---
 
@@ -633,24 +694,40 @@ This service works, but of course this is not the only requirement.
 Aside from the other requirements that we may have, we have always to 
 add the "implicit" requirements of security, stability and documentation.
 
+---
+
 For example, we should handle a request to a job id not existent, or to 
 a job that has the result "failed"...
+
 All the possible exceptions should terminate the request "gracefully". 
 With flask, it is also possible to set specific renderings for typical 
 HTTP error codes.
+
+---
 
 We won't take care of it for now, but you are free to use it as practice!
 
 --- 
 
+---
+
 ## Containers
+
+---
+
+For creating a container with Docker, we use a specific 
+file called `Dockerfile`. This file is automatically 
+understood by Docker and it has a specific format. We are not 
+going to write one from scratch, but we can inspect it and see 
+what is going on.
 
 ---
 
 ```dockerfile
 FROM python:3.7
 
-# We copy just the requirements.txt first to leverage Docker cache
+# We copy just the requirements.txt first to 
+# leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
@@ -660,6 +737,99 @@ RUN pip install -r requirements.txt
 ADD . ./
 
 ```
+
+---
+
+The important part here is to remember that: 
+ 
+* we are starting from an image that already contains Python and 
+some other useful tools, *e.g.*, `pip`.
+
+* we are leveraging Docker cache.
+
+---
+ 
+Docker builds intermediate 
+containers for every line we have in this Dockerfile. If we 
+change the content of one of the lines, Docker uses the cached 
+version of everything before the changed line and rebuilds what 
+comes after the line.
+
+![shrek](images/shrek.jpg)<!-- .element height="40%" width="40%" -->
+
+---
+
+### Building the container
+
+Now let's open a terminal in the root directory 
+(where we have the `Dockerfile`), and run:
+
+```shell script
+docker build . --t classification-ws
+```
+
+With this command we are telling Docker to build the current 
+directory (with the Dockerfile located in there), and to tag 
+the image we just created with the name `classificaion-ws`.
+
+---
+
+If you haven't done it yet, remember to stop the webserver that we 
+were using until now. This is because we will run the same service 
+through the docker container now!
+
+---
+
+Then, we can run the container with the command:
+
+```shell script
+docker run -p 5000:5000 classification-ws
+```
+
+Note that we are specifying here a **socket**. This is a mapping 
+of a port inside the container (5000) with a port outside of it (5000). 
+
+So, inside our container we will run the server on port 5000, which 
+will be linked with the port 5000 of our localhost.
+
+---
+
+We can see that the container is running the server in our [localhost 
+port 5000](http://localhost:5000).
+
+Don't run classifications there yet...
+
+---
+
+We should improve our docker service a little bit, right now it is 
+missing the redis service, the volume, and the worker. If we ask for 
+a classification job now, we will be stuck with an error...
+
+---
+
+## Docker compose
+
+---
+
+Remember the architecture? 
+![architecture](images/architecture.png)
+
+---
+
+See how many containers are there now...
+* one for the web application
+* one for each worker
+* one for the redis database
+
+---
+
+If we want to define more than one container and link them 
+together, we should use a docker container file. 
+We have one already in our root-directory. Let's inspect that.
+
+---
+
+We have three blocks
 
 ---
 
@@ -676,15 +846,55 @@ web:
   - REDIS_PORT=6378
   volumes:
     - ~/.cache/torch:/root/.cache/torch
+```
 
+---
 
+The `web` container is running the webserver on port 5000. It 
+has a `build .` command that is similar to what we just did 
+with the standalone container, and some other interesting keywords.
+
+---
+
+**links** defines the connection of this container with others 
+defined in the same dockerfile. We are connecting this container 
+with the one running the database
+
+---
+
+**environment** defines environment variables, that we can use 
+for storing dynamic values like the redis port and the hostname. 
+By default, docker links define an entry in the hosts file of 
+our containers that points to the linked containers. So if we connect 
+to `resdisdb` from inside of our `web` container, we will see 
+the localhost of the `redisdb` container.
+
+---
+
+**volumes** is another interesting trick. We are mounting a 
+directory from our filesystem into the container's filesystem.
+This means that the files located here persist even when the container 
+is stopped. We are using this trick to avoid downloading models every 
+time we run the container. 
+
+---
+
+Now check the remaining parts of the docker-compose file. You should 
+now be able to understand them.
+
+---
+
+```yaml
 redisdb:
   image: "redis"
   command: --port 6378
   ports:
     - "6378:6378"
+```
 
+---
 
+```yaml
 worker:
   build: .
   command: python worker.py
@@ -695,11 +905,27 @@ worker:
   - REDIS_PORT=6378
   volumes:
     - ~/.cache/torch:/root/.cache/torch
-
 ```
 
+---
 
-* scale up workers
+And finally, let the magic happen! We can create our architecture 
+with a single line:
+
+```shell script
+docker-compose build && docker-compose up
+```
+
+---
+
+What is the beauty of our docker compose? First, 
+we can download the whole repository and install it 
+in the client's computer without sweating too much...
+
+---
+
+Moreover, we can also easily scale our service, for example 
+by running 2 workers instead of one!
 
 ```shell script
 docker-compose up --scale worker=2
@@ -707,3 +933,4 @@ docker-compose up --scale worker=2
 
 ---
 
+<iframe frameborder="0" width="100%" height="500pt" src="http://localhost:5000"></iframe>
