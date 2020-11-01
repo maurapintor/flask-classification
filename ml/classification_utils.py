@@ -44,7 +44,7 @@ def get_model(model_id):
         except ImportError:
             logging.error("Model {} not found".format(model_id))
     else:
-        return None
+        raise ImportError
 
 
 def classify_image(model_id, img_id):
@@ -80,4 +80,6 @@ def classify_image(model_id, img_id):
     # takes the top-5 classification output and returns it
     # as a list of tuples (label_name, score)
     output = [(labels[idx], percentage[idx].item()) for idx in indices[0][:5]]
+
+    img.close()
     return output
