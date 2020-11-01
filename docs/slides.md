@@ -63,6 +63,10 @@ that will be shared with our sales team.
 
 ---
 
+# Web servers
+
+---
+
 ### Web server for the user
 
 ![web-server](images/webserver.png)
@@ -116,12 +120,20 @@ deploy resources = make them ready to be used
 
 ---
 
+# Image classification
+
+---
+
 ## Image classification
 
 ![image classification](images/image-classification.png)<!-- .element height="60%" width="60%" -->
 
 Want to know more? Check out this tutorial on 
 [image classification with PyTorch](https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html).
+
+---
+
+# Containers 
 
 ---
 
@@ -284,13 +296,17 @@ we can find the APIs we have to create, rendered by Swagger.
 
 ---
 
+## Now we can start creating our building blocks
+
+---
+
 ### Building blocks
 
-* a "box"
-* a web server
-* a queue
-* some worker
-* some storage
+* a "box" <!-- .element: class="fragment" -->
+* a web server <!-- .element: class="fragment" -->
+* a queue<!-- .element: class="fragment" -->
+* some worker<!-- .element: class="fragment" -->
+* some storage<!-- .element: class="fragment" -->
 
 
 ---
@@ -300,8 +316,8 @@ we can find the APIs we have to create, rendered by Swagger.
 * [Docker](https://www.docker.com/) (a "box")
 * [Flask](https://flask.palletsprojects.com/en/1.1.x/) (a web server)
 * [Redis](https://redis.io/) (a queue)
-* Python + [Pytorch](https://pytorch.org/) (some worker)
-* [Docker volumes](https://docs.docker.com/storage/volumes/)(some storage)
+* Python + [PyTorch](https://pytorch.org/) (some worker)
+* [Docker volumes](https://docs.docker.com/storage/volumes/) (some storage)
 ---
 
 ![architecture](images/architecture.png)
