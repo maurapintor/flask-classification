@@ -2,7 +2,6 @@ import unittest
 
 import PIL
 import torch
-import torchvision
 
 from ml.classification_utils import classify_image, \
     get_model, get_labels, fetch_image
@@ -31,6 +30,10 @@ class TestMLUtils(unittest.TestCase):
         nn_image_id = 'not an image'
         with self.assertRaises(FileNotFoundError):
             fetch_image(nn_image_id)
+
+    def test_labels(self):
+        l = get_labels()
+        assert isinstance(l, list)
 
     def test_classification(self):
         out = classify_image(self.model_id, self.image_id)
