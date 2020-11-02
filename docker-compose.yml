@@ -7,20 +7,25 @@ web:
     - redisdb
   environment:
   - REDIS_HOST=redisdb
-  - REDIS_PORT=6379
+  - REDIS_PORT=6378
+  volumes:
+    - ~/.cache/torch:/root/.cache/torch
 
 
 redisdb:
   image: "redis"
+  command: --port 6378
   ports:
-    - "6379:6379"
+    - "6378:6378"
 
 
 worker:
   build: .
-  command: python3 worker.py
+  command: python worker.py
   links:
     - redisdb
   environment:
   - REDIS_HOST=redisdb
-  - REDIS_PORT=6379
+  - REDIS_PORT=6378
+  volumes:
+    - ~/.cache/torch:/root/.cache/torch

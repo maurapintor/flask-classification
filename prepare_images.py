@@ -28,6 +28,7 @@ def prepare_images():
         shutil.rmtree(sub_dir)
     logging.info(f"Images downloaded and stored in {img_folder}.")
 
+
 def prepare_labels():
     """Saves a JSON file containing Imagenet labels as a list where
     the index is the label ID of the class."""
