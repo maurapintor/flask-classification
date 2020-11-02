@@ -26,40 +26,32 @@ What this lesson covers:
 
 Let's imagine a scenario:
 
-> We are a team of developers in a company. The company 
-> assigned to our team the task of building a demo 
-> for showing to the clients how  our service of 
-> image classification works.
+> We are a team of developers in a company. 
+>
+> We have to build a demo.
+>
+> The demo should present our product of image classification.
 
 ---
 
 
 The code for the classifier is already written as it is a product 
 of our company, we are going to use it 
-as a **black box**. This means that we know what is the input 
-and the expected output, but we are not going to look inside the code.
+as a **black box**. 
+
+![black box](images/black_box.png)
 
 ---
 
-Some people from the team has already started with this task, 
-so we are not going to start from scratch. 
-We can clone a repository that contains already some code.
+We are not going to start from scratch. 
 
-
----
-
-### Requirements:
-
-Create a web server for image classification. It will be used 
-as a demo for our company, and they asked to create a container 
-that will be shared with our sales team.
+The team has a repository that contains already some code.
 
 ---
 
+## Part 0 : Basics
 
----
-
-## Part 0 : Web servers, image classification, and containers
+### Web servers, image classification, and containers
 
 ---
 
@@ -149,10 +141,7 @@ Not only [Docker](https://github.com/containers/)...
 
 ## Part 1: Define the service
 
----
-
-
-First, we have to define what we want to build. 
+### First, we have to define what we want to build. 
 
 ---
 
@@ -166,52 +155,59 @@ Our **requirements** are:
 
 ### Before start writing any code ...
 
-This is an important part of our development process. We can start writing code 
-right away, but the risk is that we might have to rewrite the code many 
-times. It is better to take a moment to think about 
-the structure of our application. 
+This is an important part of our development process. If we rush 
+into writing the code, the risk is to waste time. 
+
+Better stop and take a moment to think what is the 
+structure of our application.
 
 ---
 
-#### Use cases and architecture
+### Use cases
 
-The user should be able to send a request for an image classification job.
+The user should be able to classify an image.
  
 ![simple api](images/simple_api.png)
 
 What can the user change? What is fixed?
 
----
-
 We decide that the user can only choose a specific model and 
-a specific image from a set of models and a set of images.
+a specific image from a set of models and a set of images. 
+<!-- .element: class="fragment" -->
 
 ---
 
-We hear from one of the ML developers that the service can take some time 
-for returning the results. 
+### One of the ML developers in our time is concerned...
+
+Classifying an image can take some second. 
+<!-- .element: class="fragment" -->
+
+What could go **wrong** in our demo?
+<!-- .element: class="fragment" -->
 
 ---
 
-What could go wrong in our demo?
+### The user expects a quick response
 
----
+It's not necessary to provide the result already, 
+but we need to tell the user we heard him. 
 
-A thing that we want to consider is that **the user expects a quick response** 
-from the server. Remember, it's not necessary to provide the result already, 
-but we need to tell the user we heard him. If we don't do so, the user might 
-get annoyed (in the meanwhile the server cannot respond because it is running 
-the job) and send multiple requests. We want to avoid that.
+Otherwise, the user might get annoyed and send multiple requests. 
+<!-- .element: class="fragment" -->
 
----
+We want to avoid that.
+<!-- .element: class="fragment" -->
 
 What is the solution? 
+<!-- .element: class="fragment" -->
 
 ---
 
 The webserver enqueues the job and returns to the user a **"ticket"** for 
-getting the results, when they are ready. The "ticket" will be the 
-ID of the job.
+getting the results. 
+The "ticket" will be the ID of the job.
+
+![ticket](images/tickets.jpg)
 
 ---
 
@@ -226,8 +222,12 @@ ready. We will use a simple database for handling the queue.
 ---
 
 The **worker**, another service of our webserver, takes the enqueued jobs 
-with a **FIFO** (First-In-First-Out) schedule, processes the requests, and 
-stores the results in the database, with the job ID as Key for accessing the 
+with a **FIFO** (First-In-First-Out) schedule, and processes the requests.
+
+---
+
+Once completed, each job result is stored 
+in the database, with the job ID as Key for accessing the 
 newly-produced data.
 
 ---
@@ -244,13 +244,12 @@ the server, providing the job id, and getting the results as a response.
 ---
 
 Now we have a rough image of what we want to build.
-We can always implement everything as a whole python script, but we 
-want to enforce **modularity**.
 
 ---
 
-What is the advantage of having **modularity** ? It will be easier, if we have too many requests, 
-to scale up the services!
+What are the advantages of enforcing **modularity**?
+* failures are isolated to single components
+* scaling is easier
 
 ---
 
@@ -260,9 +259,7 @@ to scale up the services!
 
 # Notice something...
 We haven't even named a single software until now... For what is worth, 
-our application might not even be written in Python! Before diving into 
-tools for building our server, it is important to know exactly what we 
-need to do. 
+our application might not even be written in Python!
 
 ---
 
@@ -275,10 +272,10 @@ us design and maintain our code.
 
 ### Tools for developers
 
-* [Swagger](https://swagger.io/): tool for designing and **documenting** APIs, 
-using the [Open API specifications](https://www.openapis.org/). 
 * [GitHub](https://github.com/): service that hosts the versioned source code of
 our application.
+* [Swagger](https://swagger.io/): tool for designing and **documenting** APIs, 
+using the [Open API specifications](https://www.openapis.org/). 
 
 ---
 
@@ -326,9 +323,9 @@ we can find the APIs we have to create, rendered by Swagger.
 
 This seems a very complicated architecture, but we are lucky! Docker 
 has the perfect tool for this!
-[Docker-compose](https://docs.docker.com/compose/) allows to define a 
-"map" of our service, including several containers that can be interconnected 
-through open ports.
+
+[Docker-compose](https://docs.docker.com/compose/) interconnects 
+several containers through APIs.
 
 ---
 
@@ -350,6 +347,22 @@ git clone https://github.com/maurapintor/flask-classification.git
 
 ---
 
+Let's explore the code repository. It's a good practice to start from the 
+`Readme.md` file and the `requirements.txt`. These are files that describe 
+what the repository is for, and what is needed to run it. 
+
+---
+
+The requirements file is like a shopping list. We can install all the 
+libraries we need by typing: 
+
+```shell script
+pip install -r requirements.txt
+```
+
+---
+
+
 
 First, we will try and run the server locally. We can just run the script 
 `runserver.py` and see what happens.
@@ -366,24 +379,9 @@ means that there is a service that is listening in the localhost address
 
 ---
 
-Let's explore the code repository. It's a good practice to start from the 
-`Readme.md` file and the `requirements.txt`. These are files that describe 
-what the repository is for, and what is needed to run it. 
-
----
-
-The requirements file is like a shopping list. We can install all the 
-libraries we need by typing: 
-
-```shell script
-pip install -r requirements.txt
-```
-
----
-
 Then, we can explore the `app` directory. We are not covering all the 
-code in this lesson, but [here](https://maurapintor.github.io/files/web-servers.pdf) 
-there is a tutorial about web servers with Flask.
+code in this lesson. If you are interested, [here](https://maurapintor.github.io/files/web-servers.pdf) 
+you can find a tutorial about web servers with Flask.
 
 ---
 
@@ -400,6 +398,10 @@ this as a drop down menu
 * `ml`: here we can find the code for running the machine learning tasks. 
 We have to read and understand how to use this code for running our 
 classification service.
+
+---
+
+Take a moment to get familiar with the repository.
 
 ---
 
@@ -531,9 +533,11 @@ def classifications():
 Now, if you re-run the server, you should see the list of available 
 models and images as a form. 
 
-We won't inspect how this is rendered in 
-the front-end, but of course remember that we created a form object 
-that is passed through the Flask APIs to the HTML file we are 
+---
+
+We won't inspect the front-end in detail, 
+but remember that we created a **form object** 
+that is passed through the **Flask APIs** to the HTML file we are 
 rendering with the instruction `render_template`.
 
 ---
@@ -547,7 +551,7 @@ What happens if we get many requests? What happens if the classification
 takes too long to process?
 
 If we don't send a response to users in a short time, they can get 
-bored with our service, or worse, send more requests!
+bored with our service, or worse, send more requests!<!-- .element: class="fragment" -->
 
 ---
 
@@ -679,16 +683,16 @@ image. The web browser issues the request to the backend server.
 
 #### What is happening (2/3):
 
-**backend(python)**: the server receives the request, 
-creates a task, and puts the task in the queue. Returns the id of 
-the stored job to the browser that issued the request. The server 
-redirects the browser to the results page.
+**backend(python)**: the server receives the request and puts the 
+task in the queue. Returns the id of 
+the stored job to the browser and redirects to the results page.
 <!-- .element: class="fragment" -->
 
 **frontend (html + javascript)**: the web browser renders the 
-result page and asks for the job result with the id as parameter. If 
-the status of the job is "success", the server renders the resulting 
-output, otherwise it renders a temporary screen.
+result page and asks for the job result. If 
+the status of the job is "success", 
+the server renders the resulting 
+output, otherwise it waits and repeat.
 <!-- .element: class="fragment" -->
 
 ---
@@ -700,30 +704,15 @@ In the meanwhile...
 
 **the worker(python)**: The worker takes the 
 tasks from the queue and processes them, storing the result in the 
-database. The result is accessible by the id of the job.
+database.
 <!-- .element: class="fragment" -->
 
-
 ---
 
-This service works, but of course this is not the only requirement. 
-Aside from the other requirements that we may have, we have always to 
-add the "implicit" requirements of security, stability and documentation.
+This service _works_, but of course this is not the only requirement. 
 
----
-
-For example, we should handle a request to a job id not existent, or to 
-a job that has the result "failed"...
-
-All the possible exceptions should terminate the request "gracefully". 
-With flask, it is also possible to set specific renderings for typical 
-HTTP error codes.
-
----
-
-We won't take care of it for now, but you are free to use it as practice!
-
---- 
+Depending on the application, we have always to 
+add the "implicit" requirements like security, stability and documentation.
 
 ---
 
@@ -733,9 +722,10 @@ We won't take care of it for now, but you are free to use it as practice!
 
 For creating a container with Docker, we use a specific 
 file called `Dockerfile`. This file is automatically 
-understood by Docker and it has a specific format. We are not 
-going to write one from scratch, but we can inspect it and see 
-what is going on.
+understood by Docker and it has a specific format. 
+
+We are not going to write one from scratch, 
+but we can inspect the one that builds our application.
 
 ---
 
@@ -765,28 +755,33 @@ some other useful tools, *e.g.*, `pip`.
 
 ---
  
-Docker builds intermediate 
-containers for every line we have in this Dockerfile. If we 
-change the content of one of the lines, Docker uses the cached 
+### Docker cache
+
+Docker builds **intermediate 
+containers** for every line we have in this Dockerfile. 
+
+If we change the content of one of the lines, Docker uses the cached 
 version of everything before the changed line and rebuilds what 
 comes after the line.
 
-![shrek](images/shrek.jpg)<!-- .element height="40%" width="40%" -->
+![shrek](images/shrek.jpg)<!-- .element height="30%" width="30%" -->
 
 ---
 
 ### Building the container
 
-Now let's open a terminal in the root directory 
-(where we have the `Dockerfile`), and run:
+Now let's open a terminal in the root directory, and run:
 
 ```shell script
 docker build . --t classification-ws
 ```
 
-With this command we are telling Docker to build the current 
-directory (with the Dockerfile located in there), and to tag 
+We are telling Docker to build the current 
+directory, and to **tag** 
 the image we just created with the name `classificaion-ws`.
+
+Docker will automatically search for a file `Dockerfile` in the 
+specified directory.
 
 ---
 
@@ -803,7 +798,7 @@ docker run -p 5000:5000 classification-ws
 ```
 
 Note that we are specifying here a **socket**. This is a mapping 
-of a port inside the container (5000) with a port outside of it (5000). 
+of a port inside the container with a port in our computer. 
 
 So, inside our container we will run the server on port 5000, which 
 will be linked with the port 5000 of our localhost.
@@ -823,11 +818,15 @@ a classification job now, we will be stuck with an error...
 
 ---
 
+Stop the container with Ctrl+C.
+
+---
+
 ## Docker compose
 
 ---
 
-Remember the architecture? 
+Remember the architecture? See how many containers are there:
 ![architecture](images/architecture.png)
 
 ---
@@ -840,12 +839,15 @@ See how many containers are there now...
 ---
 
 If we want to define more than one container and link them 
-together, we should use a docker container file. 
+together, we should use a docker compose file. 
 We have one already in our root-directory. Let's inspect that.
 
 ---
 
-We have three blocks
+We have three blocks:
+* web
+* redis
+* worker
 
 ---
 
@@ -880,6 +882,10 @@ with the one running the database
 
 **environment** defines environment variables, that we can use 
 for storing dynamic values like the redis port and the hostname. 
+Why is the hostname `redisdb`?
+
+---
+
 By default, docker links define an entry in the hosts file of 
 our containers that points to the linked containers. So if we connect 
 to `resdisdb` from inside of our `web` container, we will see 
@@ -888,9 +894,11 @@ the localhost of the `redisdb` container.
 ---
 
 **volumes** is another interesting trick. We are mounting a 
-directory from our filesystem into the container's filesystem.
+directory from our **filesystem** into the container's filesystem.
 This means that the files located here persist even when the container 
-is stopped. We are using this trick to avoid downloading models every 
+is stopped. 
+
+We are using this trick to avoid downloading models every 
 time we run the container. 
 
 ---
