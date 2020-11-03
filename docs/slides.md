@@ -753,8 +753,8 @@ but we can inspect the one that builds our application.
 ```dockerfile
 FROM python:3.7
 
-# We copy just the requirements.txt first to 
-# leverage Docker cache
+# We copy just the requirements.txt first to leverage 
+# Docker cache
 COPY ./requirements.txt /app/requirements.txt
 
 WORKDIR /app
@@ -762,6 +762,8 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 ADD . ./
+
+CMD ["python", "runserver.py"]
 
 ```
 
@@ -794,7 +796,7 @@ comes after the line.
 Now let's open a terminal in the root directory, and run:
 
 ```shell script
-docker build . --t classification-ws
+docker build . -t classification-ws
 ```
 
 We are telling Docker to build the current 
@@ -989,4 +991,14 @@ this architecture. Can you figure out them?
 # Summary
 
 ---
+<!-- .slide: style="text-align: left;"> -->  
 
+### Summary
+
+* design phase of a project
+* frontend-backend
+* APIs
+* long running jobs and queues
+* containers
+
+Questions? Send them to [maura.pintor@unica.it](mailto:maura.pintor@unica.it)
