@@ -8,3 +8,5 @@ WORKDIR /app
 RUN pip install -r requirements.txt
 
 ADD . ./
+
+CMD ["python", "runserver.py"]

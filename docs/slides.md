@@ -20,7 +20,7 @@ What this lesson covers:
 * implementing a few basic APIs
 * creating a container
 * creating an architecture with isolated components
-* scaling up resources 
+* scaling 
 
 ---
 
@@ -65,6 +65,8 @@ The team has a repository that contains already some code.
 
 More info [here](https://en.wikipedia.org/wiki/Web_server).
 
+[Example of webserver](https://en.wikipedia.org/wiki/)
+
 ---
 
 ### Web server for the developer
@@ -79,6 +81,8 @@ More info [here](https://en.wikipedia.org/wiki/Front_and_back_ends).
 
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/s7wmiS2mSXY" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Open video](https://www.youtube.com/embed/s7wmiS2mSXY)
 
 More info about [APIs](https://en.wikipedia.org/wiki/Application_programming_interface).
 
@@ -97,6 +101,10 @@ More info on [HTTP Protocol](https://en.wikipedia.org/wiki/Hypertext_Transfer_Pr
 
 ---
 
+![requests](images/requests.png)
+
+---
+
 ### Localhost
 
 ![localhost](images/what-is-localhost.png)
@@ -109,6 +117,8 @@ More info [here](https://en.wikipedia.org/wiki/Localhost).
 ![deployment](images/deploy.png)<!-- .element height="60%" width="60%" -->
 
 deploy resources = make them ready to be used
+
+We will not deploy our application for this tutorial.
 
 ---
 
@@ -243,10 +253,6 @@ the server, providing the job id, and getting the results as a response.
 
 ---
 
-Now we have a rough image of what we want to build.
-
----
-
 What are the advantages of enforcing **modularity**?
 * failures are isolated to single components
 * scaling is easier
@@ -254,6 +260,16 @@ What are the advantages of enforcing **modularity**?
 ---
 
 ![scaling workers](images/multiple_workers.png)
+
+---
+
+We can still make another improvement: pre-downloading the images and 
+the models. 
+
+What pieces of our architecture should be able to access them?<!-- .element: class="fragment" -->
+
+
+
 
 ---
 
@@ -315,6 +331,7 @@ we can find the APIs we have to create, rendered by Swagger.
 * [Redis](https://redis.io/) (a queue)
 * Python + [PyTorch](https://pytorch.org/) (some worker)
 * [Docker volumes](https://docs.docker.com/storage/volumes/) (some storage)
+
 ---
 
 ![architecture](images/architecture.png)
@@ -482,11 +499,6 @@ See what we already have in `app/forms/classification_form.py`.
 
 ---
 
-Now let's go to `app/classifications.py` and try to implement the API that 
-we need.
-
----
-
 ---
 
 We should get the classification output with our machine learning 
@@ -530,8 +542,7 @@ def classifications():
 
 ---
 
-Now, if you re-run the server, you should see the list of available 
-models and images as a form. 
+Now try it on the server. 
 
 ---
 
@@ -552,6 +563,16 @@ takes too long to process?
 
 If we don't send a response to users in a short time, they can get 
 bored with our service, or worse, send more requests!<!-- .element: class="fragment" -->
+
+---
+
+We can simulate a long running task by adding a line 
+in the classification function. 
+
+```python
+import time
+time.sleep(5)
+```
 
 ---
 
@@ -957,4 +978,15 @@ docker-compose up --scale worker=2
 
 ---
 
-<iframe frameborder="0" width="100%" height="500pt" src="http://localhost:5000"></iframe>
+There are other improvements that can be easily implemented with 
+this architecture. Can you figure out them?
+
+* scale web container and add load balancer<!-- .element: class="fragment" -->
+* caching machine learning results<!-- .element: class="fragment" -->
+
+---
+
+# Summary
+
+---
+

@@ -13,14 +13,26 @@ function update(jobId) {
         url: `/classifications/${jobId}`,
         success: function (data) {
             console.log(data)
-            if (data['task_status'] === "finished") {
-                $('#waitText').text("");
-                makeGraph(data['data']);
-            } else {
-                $('#waitText').text("please wait...");
-                setTimeout(function () {
-                    update(jobId);
-                }, 1000);
+            switch (data['task_status']) {
+                case "finished":
+                    $('#spinner').hide();
+                    $('#waitText').text("");
+                    makeGraph(data['data']);
+                    break;
+                case "started":
+                    $('#waitText').text("Job started...");
+                    $('#spinner').show();
+                    setTimeout(function () {
+                        update(jobId);
+                    }, 1000);
+                    break;
+                case "queued":
+                    $('#waitText').text("Please wait ...");
+                    $('#spinner').show();
+                    setTimeout(function () {
+                        update(jobId);
+                    }, 1000);
+                    break;
             }
 
         }

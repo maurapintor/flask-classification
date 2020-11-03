@@ -10,6 +10,7 @@
             margin: 0 auto;
         }
 
+
     </style>
     <div class="row">
         <div class="col">
@@ -20,9 +21,17 @@
             </div>
         </div>
         <div class="col">
-            <div class="card ">
-                <h2 id="waitText"></h2>
-                <canvas id="classificationOutput" style="max-width: 500px;"></canvas>
+            <div class="card">
+                <div class="row">
+                    <canvas id="classificationOutput" style="max-width: 500px;"></canvas>
+                    <div class="align-items-center">
+                        <h2 id="waitText"></h2>
+                        <div class="m-5 spinner spinner-border mr-auto spinner-grow text-dark row" id="spinner">
+                        </div>
+                    </div>
+                </div>
+
+
                 <a class="btn btn-dark" href="/classifications" role="button">Back</a>
             </div>
         </div>
