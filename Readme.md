@@ -15,6 +15,14 @@ And install the requirements with
 pip install -r requirements.txt
 ```
 
+Additional requirements:
+* Redis
+* Docker
+
+## Configuration
+
+Configure the service by editing the file `config.py`.
+
 ## Prepare the resources
 
 It is recommended to pre-download images and models before running 
