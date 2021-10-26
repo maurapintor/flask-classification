@@ -187,9 +187,9 @@ a specific image from a set of models and a set of images.
 
 ---
 
-### One of the ML developers in our time is concerned...
+### Modern ML systems are very fast but...
 
-Classifying an image can take some second. 
+What if classifying the image takes longer? 
 <!-- .element: class="fragment" -->
 
 What could go **wrong** in our demo?
