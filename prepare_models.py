@@ -12,7 +12,7 @@ def prepare_models():
         try:
             module = importlib.import_module('torchvision.models')
             # download model
-            _ = module.__getattribute__(model_name)(pretrained=True)
+            _ = module.__getattribute__(model_name)(weights="DEFAULT")
             del _  # free up memory
         except ImportError:
             logging.error("Model {} not found".format(model_name))
