@@ -10,4 +10,4 @@ app.config.from_object(config)
 # noinspection PyUnresolvedReferences
 from app import routes
 
-app.run(host='0.0.0.0', debug=True, port=8081)
+app.run(host='0.0.0.0', debug=True, port=5000)
