@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.9
 
 # We copy just the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
