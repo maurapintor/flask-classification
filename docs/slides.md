@@ -359,7 +359,7 @@ Download the repository (run a terminal in the directory where you
 want to download it, or `cd` into that from your home directory): 
 
 ```shell script
-git clone https://github.com/maurapintor/flask-classification.git
+git clone https://github.com/unica-isde/flask-classification.git
 ```
 
 ---
@@ -787,7 +787,6 @@ If we change the content of one of the lines, Docker uses the cached
 version of everything before the changed line and rebuilds what 
 comes after the line.
 
-![shrek](images/shrek.jpg)<!-- .element height="30%" width="30%" -->
 
 ---
 
